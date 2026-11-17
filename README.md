@@ -50,6 +50,7 @@ are the three `LIVEKIT_*` values. Models are set in [`src/shipcheck/config.py`](
 | [`src/shipcheck/turn_metrics.py`](src/shipcheck/turn_metrics.py) | Per-turn recorder: JSONL and Prometheus |
 | [`scripts/report.py`](scripts/report.py) | Median and p95 from the JSONL; writes the tables in this README |
 | [`scripts/measure.py`](scripts/measure.py) | Speaks scripted calls into the full audio pipeline to collect data |
+| [`web/`](web/) | Browser page with a start/stop button and an audio-reactive blob, plus its local token server |
 | [`telephony/`](telephony/) | Inbound trunk and dispatch rule as JSON, plus `setup.sh` |
 | [`observability/`](observability/) | Prometheus and Grafana with docker compose |
 
@@ -102,6 +103,27 @@ lk agent dev               # run it against LiveKit Cloud, then open the Agent C
 ```
 
 `uv run src/agent.py console` does the same as `lk agent console` if you prefer not to use `lk`.
+
+### In the browser
+
+[`web/`](web/) is a one-page frontend: a single button and a blob that moves with the audio,
+blue while you talk and green while the agent replies.
+
+```shell
+uv run src/agent.py dev    # terminal 1: the agent
+uv run web/server.py       # terminal 2: then open http://localhost:8000
+```
+
+`web/server.py` serves the page and, when you press start, signs a token for a new room with
+the `shipcheck` agent dispatched into it, using the `LIVEKIT_*` values in `.env.local`. It
+listens on 127.0.0.1 only, because anyone who can reach it can start a session on your project.
+Pressing stop, closing the tab or the agent hanging up all end the session.
+
+Open <http://localhost:8000/?preview> to see the page without connecting anything. It plays a
+scripted conversation with simulated audio levels and uses neither the microphone nor LiveKit.
+
+There is no build step: the page loads three.js and `livekit-client` from jsDelivr, pinned to
+exact versions.
 
 ## Demo call script
 
@@ -237,7 +259,7 @@ no-tool turns, tool duration by upstream, upstream failures, and a tuning-profil
 ## Tests
 
 ```shell
-uv run pytest -m "not llm"    # offline: names, upstream clients, metrics, report
+uv run pytest -m "not llm"    # offline: names, upstream clients, metrics, report, web token
 uv run pytest -m llm          # agent behaviour; needs LIVEKIT_API_KEY and LIVEKIT_API_SECRET
 ```
 
