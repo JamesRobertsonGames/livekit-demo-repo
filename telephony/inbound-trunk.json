@@ -1,0 +1,7 @@
+{
+  "trunk": {
+    "name": "shipcheck-twilio-inbound",
+    "numbers": ["+440000000000"],
+    "krisp_enabled": true
+  }
+}

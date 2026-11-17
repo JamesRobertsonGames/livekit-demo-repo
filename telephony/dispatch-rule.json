@@ -1,0 +1,18 @@
+{
+  "dispatch_rule": {
+    "name": "shipcheck-inbound",
+    "rule": {
+      "dispatch_rule_callee": {
+        "room_prefix": "shipcheck-",
+        "randomize": true
+      }
+    },
+    "room_config": {
+      "agents": [
+        {
+          "agent_name": "shipcheck"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --locked
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      # Name resolution, upstream clients, metrics and the report script.
+      # No network access to PyPI, OSV or Anaconda and no credentials needed.
+      - name: Offline tests
+        run: uv run pytest -m "not llm"
+
+      # Agent behaviour in text mode: a real LLM through LiveKit Inference with
+      # every upstream HTTP call mocked. Skipped when the secrets are absent,
+      # which is the case for pull requests from forks.
+      - name: Agent behaviour tests
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+        run: uv run pytest -m llm -rs
