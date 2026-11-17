@@ -21,6 +21,7 @@ data/
 console-recordings/
 observability/
 telephony/
+web/
 .claude/
 CLAUDE.md
 AGENTS.md
